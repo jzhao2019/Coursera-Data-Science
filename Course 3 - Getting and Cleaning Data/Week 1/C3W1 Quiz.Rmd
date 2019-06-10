@@ -1,0 +1,112 @@
+---
+title: "C3W1"
+author: "Jeff"
+date: "June 5, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+The American Community Survey distributes downloadable data about United States communities. Download the 2006 microdata survey about housing for the state of Idaho using download.file() from here:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06hid.csv
+
+and load the data into R. The code book, describing the variable names is here:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FPUMSDataDict06.pdf
+
+How many properties are worth $1,000,000 or more?
+
+
+```{r}
+dt<-read.csv("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06hid.csv")
+summary(dt$VAL)
+```
+
+```{r}
+class(dt$VAL)
+```
+
+```{r}
+head(dt$VAL,30)
+```
+
+```{r}
+sum(dt$VAL>23,na.rm = TRUE)
+```
+
+## Question 2
+Use the data you loaded from Question 1. Consider the variable FES in the code book. Which of the "tidy data" principles does this variable violate?
+
+        Tidy data has one variable per column.
+
+## Question 3
+Download the Excel spreadsheet on Natural Gas Aquisition Program here:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2FDATA.gov_NGAP.xlsx
+
+Read rows 18-23 and columns 7-15 into R and assign the result to a variable called:
+
+
+What is the value of:
+
+
+(original data source: http://catalog.data.gov/dataset/natural-gas-acquisition-program)
+
+```{r}
+library(xlsx)
+dat<-read.xlsx("~/R Works/Coursera/Course 3 - Getting and Cleaning Data/Week 1/getdata Fdata FDATA.gov_NGAP.xlsx",sheetIndex = 1, colNames=TRUE, rowIndex = 18:23, colIndex = 7:15)  #need to read the most current help doc to see the syntax, e.g. "rowIndex =" rather "than rows ="
+sum(dat$Zip*dat$Ext,na.rm=T)
+```
+
+## Question 4
+Read the XML data on Baltimore restaurants from here:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml
+
+How many restaurants have zipcode 21231?
+
+```{r}
+library(XML)
+fileUrl2 <- "http://d396qusza40orc.cloudfront.net/getdata/data/restaurants.xml"
+doc <- xmlTreeParse(file=fileUrl2,useInternal=TRUE)
+rootNode <- xmlRoot(doc)
+zipcodes<-xpathSApply(rootNode, "//zipcode",xmlValue)
+cnt<-sum(zipcodes=="21231")
+cnt
+
+```
+
+```{r}
+library("XML")
+fileURL<-"https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Frestaurants.xml"
+doc <- xmlTreeParse(sub("s", "", fileURL), useInternal = TRUE)
+rootNode <- XML::xmlRoot(doc)
+
+zipcodes <- XML::xpathSApply(rootNode, "//zipcode", XML::xmlValue)
+xmlZipcodeDT <- data.table::data.table(zipcode = zipcodes)
+xmlZipcodeDT[zipcode == "21231", .N]
+```
+
+## Question 5
+The American Community Survey distributes downloadable data about United States communities. Download the 2006 microdata survey about housing for the state of Idaho using download.file() from here:
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06pid.csv
+
+using the fread() command load the data into an R object
+
+
+The following are ways to calculate the average value of the variable
+
+
+broken down by sex. Using the data.table package, which will deliver the fastest user time?
+
+```{r}
+library(data.table)
+download.file("https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06pid.csv", "data.csv", "auto")
+DT<-fread("data.csv")
+DT[,mean(pwgtp15),by=SEX]
+```
