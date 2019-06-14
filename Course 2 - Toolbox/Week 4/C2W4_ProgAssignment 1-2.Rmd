@@ -15,7 +15,7 @@ Read the outcome data into R via the read.csv function and look at the rst few r
 > head(outcome)
 
 ```{r}
-outcome <- read.csv("~/R Works/Course 2/rprog_data_ProgAssignment3-data/outcome-of-care-measures.csv", colClasses = "character") #is it necessory to read all col's as character?
+outcome <- read.csv("~/R Works/Coursera/Course 2 - R Programming/Week 4/data/outcome-of-care-measures.csv", colClasses = "character") #is it necessory to read all col's as character?
 head(outcome,3)
 ```
 ```{r}
@@ -31,13 +31,20 @@ outcome[,11]<-as.numeric(outcome[,11])  #coerce to numeric for hist() to work
 hist(outcome[,11])
 ```
 
-To understand the tall bar to the left
+To understand the tall bar to the right (NA's)
 ```{r}
 summary(outcome[,11])
+```
+```{r}
 a<-outcome[outcome[,11]>90,11]
 summary(a)
+```
+
+```{r}
 sum(outcome[,11]==96)
 ```
+
+See what the states look like for part 2.
 ```{r}
 unique(outcome[,7])
 ```
@@ -67,7 +74,7 @@ message \invalid outcome".
 ```{r}
 best <- function(state, outcome) {
         ## Read outcome data
-        outcome_data <- read.csv("~/R Works/Course 2/rprog_data_ProgAssignment3-data/outcome-of-care-measures.csv", colClasses = "character") 
+        outcome_data <- read.csv("~/R Works/Coursera/Course 2 - R Programming/Week 4/data/outcome-of-care-measures.csv", colClasses = "character") 
         
         ## Check that state and outcome are valid
         st<-unique(outcome_data[,7])

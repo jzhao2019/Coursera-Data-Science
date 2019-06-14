@@ -202,7 +202,7 @@ $(document).ready(function () {
 <p>Write a function called rankhospital that takes three arguments: the 2-character abbreviated name of a state (state), an outcome (outcome), and the ranking of a hospital in that state for that outcome (num). The function reads the outcome-of-care-measures.csv le and returns a character vector with the name of the hospital that has the ranking speci ed by the num argument. For example, the call rankhospital(“MD”, “heart failure”, 5) would return a character vector containing the name of the hospital with the 5th lowest 30-day death rate for heart failure. The num argument can take values “, ”, or an integer indicating the ranking (smaller numbers are better). If the number given by num is larger than the number of hospitals in that state, then the function should return NA. Hospitals that do not have data on a particular outcome should be excluded from the set of hospitals when deciding the rankings. Handling ties. It may occur that multiple hospitals have the same 30-day mortality rate for a given cause of death. In those cases ties should be broken by using the hospital name. For example, in Texas (“), the hospitals with lowest 30-day mortality rate for heart failure are shown here. &gt; head(texas) Hospital.Name Rate Rank 3935 FORT DUNCAN MEDICAL CENTER 8.1 1 4085 TOMBALL REGIONAL MEDICAL CENTER 8.5 2 4103 CYPRESS FAIRBANKS MEDICAL CENTER 8.7 3 3954 DETAR HOSPITAL NAVARRO 8.7 4 4010 METHODIST HOSPITAL,THE 8.8 5 3962 MISSION REGIONAL MEDICAL CENTER 8.8 6 Note that Cypress Fairbanks Medical Center and Detar Hospital Navarro both have the same 30-day rate (8.7). However, because Cypress comes before Detar alphabetically, Cypress is ranked number 3 in this scheme and Detar is ranked number 4. One can use the order function to sort multiple vectors in this manner (i.e. where one vector is used to break ties in another vector). The function should use the following template. rankhospital &lt;- function(state, outcome, num =”best“) { ## Read outcome data ## Check that state and outcome are valid ## Return hospital name in that state with the given rank ## 30-day death rate } The function should check the validity of its arguments. If an invalid state value is passed to rankhospital, the function should throw an error via the stop function with the exact message state”. If an invalid outcome value is passed to rankhospital, the function should throw an error via the stop function with the exact message outcome“.</p>
 <pre class="r"><code>rankhospital &lt;- function(state, outcome, num =&quot;best&quot;) {
         ## Read outcome data
-        outcome_data &lt;- read.csv(&quot;~/R Works/Course 2/rprog_data_ProgAssignment3-data/outcome-of-care-measures.csv&quot;)
+        outcome_data &lt;- read.csv(&quot;~/R Works/Coursera/Course 2 - R Programming/Week 4/data/outcome-of-care-measures.csv&quot;)
         ## Check that state and outcome are valid
         st&lt;-unique(outcome_data[,7])
         if (!is.element(state,st)) stop(&quot;invalid state&quot;)
@@ -216,23 +216,27 @@ $(document).ready(function () {
         colnames(st_data) &lt;- c(&quot;name&quot;,&quot;outcome&quot;)
         w&lt;-c(&quot;best&quot;=1,&quot;worst&quot;=nrow(st_data))
         if (is.numeric(num) ) {
-                if (num&gt;nrow(st_data)) {
-                      return(&quot;NA&quot;)  
-                }   else {
-                          n&lt;-num
+                if (num&gt;nrow(st_data)) {  # if the ranking is larger than the number of hospitals, return &quot;Invalid Rank&quot;
+                      return(&quot;Invalid Rank&quot;)  
+                }   else {                # Otherwise, set n to the ranking number
+                        n&lt;-num
                 }  
                 
         }  else {
-                if(is.element(num, c(&quot;best&quot;,&quot;worst&quot;))) {
-                        n&lt;-w[num]
-                }   else {
-                        stop(&quot;Invalid Rank&quot;)
+                if(is.element(num, c(&quot;best&quot;,&quot;worst&quot;))) { # if the argument is &quot;best&quot; or &quot;worst&quot;,
+                        n&lt;-w[num]                        # set n to the ranking number
+                }   else {                              #Otherwise, return &quot;Invalid Rank&quot;
+                        return(&quot;Invalid Rank&quot;)
                 }
         }
         
         ## Return hospital name in that state with the given rank 30-day death rate
+        
+        # set the data to the appropriate class
         st_data&lt;-transform(st_data,outcome = as.numeric(as.character(outcome)),name = as.character(name))
+        # sort st_data by outcome then by hospital name
         ranked&lt;-st_data[order(st_data$outcome,st_data$name),]
+        # return the hospital name for the selected rank
         ranked[n,1]
 }
 
@@ -241,7 +245,9 @@ rankhospital(&quot;TX&quot;, &quot;heart failure&quot;, 4)</code></pre>
 <pre class="r"><code>rankhospital(&quot;MD&quot;, &quot;heart attack&quot;, &quot;worst&quot;)</code></pre>
 <pre><code>## [1] &quot;HARFORD MEMORIAL HOSPITAL&quot;</code></pre>
 <pre class="r"><code>rankhospital(&quot;MN&quot;, &quot;heart attack&quot;, 5000)</code></pre>
-<pre><code>## [1] &quot;NA&quot;</code></pre>
+<pre><code>## [1] &quot;Invalid Rank&quot;</code></pre>
+<pre class="r"><code>rankhospital(&quot;MN&quot;, &quot;heart attack&quot;, &quot;test&quot;)</code></pre>
+<pre><code>## [1] &quot;Invalid Rank&quot;</code></pre>
 <pre class="r"><code>rankhospital(&quot;NC&quot;, &quot;heart attack&quot;, &quot;worst&quot;)</code></pre>
 <pre><code>## [1] &quot;WAYNE MEMORIAL HOSPITAL&quot;</code></pre>
 <pre class="r"><code>rankhospital(&quot;WA&quot;, &quot;heart attack&quot;, 7)</code></pre>
@@ -256,27 +262,35 @@ rankhospital(&quot;TX&quot;, &quot;heart failure&quot;, 4)</code></pre>
 <p>Write a function called rankall that takes two arguments: an outcome name (outcome) and a hospital ranking (num). The function reads the outcome-of-care-measures.csv le and returns a 2-column data frame containing the hospital in each state that has the ranking speci ed in num. For example the function call rankall(“heart attack”, “best”) would return a data frame containing the names of the hospitals that are the best in their respective states for 30-day heart attack death rates. The function should return a value for every state (some may be NA). The rst column in the data frame is named hospital, which contains the hospital name, and the second column is named state, which contains the 2-character abbreviation for the state name. Hospitals that do not have data on a particular outcome should be excluded from the set of hospitals when deciding the rankings. Handling ties. The rankall function should handle ties in the 30-day mortality rates in the same way that the rankhospital function handles ties. The function should use the following template. rankall &lt;- function(outcome, num = “best”) { ## Read outcome data ## Check that state and outcome are valid ## For each state, find the hospital of the given rank ## Return a data frame with the hospital names and the ## (abbreviated) state name } NOTE: For the purpose of this part of the assignment (and for e ciency), your function should NOT call the rankhospital function from the previous section. The function should check the validity of its arguments. If an invalid outcome value is passed to rankall, the function should throw an error via the stop function with the exact message outcome“. The num variable can take values ”, “, or an integer indicating the ranking (smaller numbers are better). If the number given by num is larger than the number of hospitals in that state, then the function should return NA.</p>
 <pre class="r"><code>rankall &lt;- function(outcome, num = &quot;best&quot;) {
         ## Read outcome data
-        outcome_data &lt;- read.csv(&quot;~/R Works/Course 2/rprog_data_ProgAssignment3-data/outcome-of-care-measures.csv&quot;)
+        outcome_data &lt;- read.csv(&quot;~/R Works/Coursera/Course 2 - R Programming/Week 4/data/outcome-of-care-measures.csv&quot;)
 
         ## Check that outcome and rank are valid
-        if (!is.element(outcome,c(&quot;heart attack&quot;,&quot;heart failure&quot;,&quot;pneumonia&quot;))) stop(&quot;invalid outcome&quot;)
+        if (!is.element(outcome,c(&quot;heart attack&quot;,&quot;heart failure&quot;,&quot;pneumonia&quot;))) return(&quot;invalid outcome&quot;)
         
+        # subset data based on the outcome argument, including state and hospital name
         col&lt;-c(&quot;heart attack&quot;=11,&quot;heart failure&quot;=17,&quot;pneumonia&quot;=23)
         st_data&lt;-outcome_data[outcome_data[,col[outcome]]!=&quot;Not Available&quot;,c(2,7,col[outcome])]
         colnames(st_data) &lt;- c(&quot;name&quot;,&quot;state&quot;,&quot;outcome&quot;)
         
         ## For each state, find the hospital of the given rank
+        
+        #set data to the appropriate class
         st_data&lt;-transform(st_data,outcome = as.numeric(as.character(outcome)),name = as.character(name),state=as.character(state))
+        
+        # sort data based on state, outome and hospital name.
         ranked&lt;-st_data[order(st_data$state,st_data$outcome,st_data$name),]
-                #ranked$rank&lt;-unlist(with(ranked,tapply(ranked,ranked$state,rank)))
-
-        ## Return a data frame with the hospital names and the (abbreviated) state name
+        
+        ## return a data frame with the hospital names and the (abbreviated) state name
+        
+        # find all distinct states
         st_name&lt;-unique(ranked$state)
+        
+        # create an empty data frame to store the hospital name for the given rank
         st_rank&lt;-data.frame(state=st_name,name=character(length(st_name)),stringsAsFactors = FALSE) 
                 # when StringsAsFactors is not set to FALSE, values can't be assisgned to the data frame. The default mode for data frame is factor.
         for (i in 1:length(st_name)) {
-                ind_st&lt;-ranked[ranked$state==st_name[i],c(1,2)]
-                st_rank[i,1]&lt;-st_name[i]
+                ind_st&lt;-ranked[ranked$state==st_name[i],c(1,2)] #create a data frame for the state in each loop
+                
                 
                 if (num==&quot;best&quot;) {
                         n=1
@@ -286,11 +300,15 @@ rankhospital(&quot;TX&quot;, &quot;heart failure&quot;, 4)</code></pre>
                         n=num
                 }
                 
+                # find the hospital of the given rank and store to the second column in the target data frame
                 if (n&gt;nrow(ind_st)) {
                         st_rank[i,2]&lt;-&quot;NA&quot;
                 }   else {
                         st_rank[i,2]&lt;-ind_st[n,1]
                 }
+                
+                # store the state to the first column in the target data frame
+                st_rank[i,1]&lt;-st_name[i]                 
         }
         st_rank
 }

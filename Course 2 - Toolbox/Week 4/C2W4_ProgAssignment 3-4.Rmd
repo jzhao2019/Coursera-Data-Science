@@ -50,7 +50,7 @@ the exact message \invalid outcome".
 ```{r}
 rankhospital <- function(state, outcome, num ="best") {
         ## Read outcome data
-        outcome_data <- read.csv("~/R Works/Course 2/rprog_data_ProgAssignment3-data/outcome-of-care-measures.csv")
+        outcome_data <- read.csv("~/R Works/Coursera/Course 2 - R Programming/Week 4/data/outcome-of-care-measures.csv")
         ## Check that state and outcome are valid
         st<-unique(outcome_data[,7])
         if (!is.element(state,st)) stop("invalid state")
@@ -64,23 +64,27 @@ rankhospital <- function(state, outcome, num ="best") {
         colnames(st_data) <- c("name","outcome")
         w<-c("best"=1,"worst"=nrow(st_data))
         if (is.numeric(num) ) {
-                if (num>nrow(st_data)) {
-                      return("NA")  
-                }   else {
-                          n<-num
+                if (num>nrow(st_data)) {  # if the ranking is larger than the number of hospitals, return "Invalid Rank"
+                      return("Invalid Rank")  
+                }   else {                # Otherwise, set n to the ranking number
+                        n<-num
                 }  
                 
         }  else {
-                if(is.element(num, c("best","worst"))) {
-                        n<-w[num]
-                }   else {
-                        stop("Invalid Rank")
+                if(is.element(num, c("best","worst"))) { # if the argument is "best" or "worst",
+                        n<-w[num]                        # set n to the ranking number
+                }   else {                              #Otherwise, return "Invalid Rank"
+                        return("Invalid Rank")
                 }
         }
         
         ## Return hospital name in that state with the given rank 30-day death rate
+        
+        # set the data to the appropriate class
         st_data<-transform(st_data,outcome = as.numeric(as.character(outcome)),name = as.character(name))
+        # sort st_data by outcome then by hospital name
         ranked<-st_data[order(st_data$outcome,st_data$name),]
+        # return the hospital name for the selected rank
         ranked[n,1]
 }
 
@@ -94,6 +98,10 @@ rankhospital("MD", "heart attack", "worst")
 
 ```{r}
 rankhospital("MN", "heart attack", 5000)
+```
+
+```{r}
+rankhospital("MN", "heart attack", "test")
 ```
 
 ```{r}
@@ -143,27 +151,35 @@ return NA.
 ```{r}
 rankall <- function(outcome, num = "best") {
         ## Read outcome data
-        outcome_data <- read.csv("~/R Works/Course 2/rprog_data_ProgAssignment3-data/outcome-of-care-measures.csv")
+        outcome_data <- read.csv("~/R Works/Coursera/Course 2 - R Programming/Week 4/data/outcome-of-care-measures.csv")
 
         ## Check that outcome and rank are valid
-        if (!is.element(outcome,c("heart attack","heart failure","pneumonia"))) stop("invalid outcome")
+        if (!is.element(outcome,c("heart attack","heart failure","pneumonia"))) return("invalid outcome")
         
+        # subset data based on the outcome argument, including state and hospital name
         col<-c("heart attack"=11,"heart failure"=17,"pneumonia"=23)
         st_data<-outcome_data[outcome_data[,col[outcome]]!="Not Available",c(2,7,col[outcome])]
         colnames(st_data) <- c("name","state","outcome")
         
         ## For each state, find the hospital of the given rank
+        
+        #set data to the appropriate class
         st_data<-transform(st_data,outcome = as.numeric(as.character(outcome)),name = as.character(name),state=as.character(state))
+        
+        # sort data based on state, outome and hospital name.
         ranked<-st_data[order(st_data$state,st_data$outcome,st_data$name),]
-                #ranked$rank<-unlist(with(ranked,tapply(ranked,ranked$state,rank)))
-
-        ## Return a data frame with the hospital names and the (abbreviated) state name
+        
+        ## return a data frame with the hospital names and the (abbreviated) state name
+        
+        # find all distinct states
         st_name<-unique(ranked$state)
+        
+        # create an empty data frame to store the hospital name for the given rank
         st_rank<-data.frame(state=st_name,name=character(length(st_name)),stringsAsFactors = FALSE) 
                 # when StringsAsFactors is not set to FALSE, values can't be assisgned to the data frame. The default mode for data frame is factor.
         for (i in 1:length(st_name)) {
-                ind_st<-ranked[ranked$state==st_name[i],c(1,2)]
-                st_rank[i,1]<-st_name[i]
+                ind_st<-ranked[ranked$state==st_name[i],c(1,2)] #create a data frame for the state in each loop
+                
                 
                 if (num=="best") {
                         n=1
@@ -173,11 +189,15 @@ rankall <- function(outcome, num = "best") {
                         n=num
                 }
                 
+                # find the hospital of the given rank and store to the second column in the target data frame
                 if (n>nrow(ind_st)) {
                         st_rank[i,2]<-"NA"
                 }   else {
                         st_rank[i,2]<-ind_st[n,1]
                 }
+                
+                # store the state to the first column in the target data frame
+                st_rank[i,1]<-st_name[i]                 
         }
         st_rank
 }
