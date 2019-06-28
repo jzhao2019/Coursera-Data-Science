@@ -1,0 +1,119 @@
+---
+title: "C3W2 Quiz"
+author: "Jeff"
+date: "June 11, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question 1
+
+Register an application with the Github API here https://github.com/settings/applications. Access the API to get information on your instructors repositories (hint: this is the url you want "https://api.github.com/users/jtleek/repos"). Use this data to find the time that the datasharing repo was created. What time was it created?
+
+This tutorial may be useful (https://github.com/hadley/httr/blob/master/demo/oauth2-github.r). You may also need to run the code in the base R package and not R studio.
+
+```{r}
+library(httr)
+library(httpuv)
+library(jsonlite)
+library(dplyr)
+
+# 1. Find OAuth settings for github:
+#    http://developer.github.com/v3/oauth/
+oauth_endpoints("github")
+
+# 2. Register an application at https://github.com/settings/applications;
+#    Use any URL you would like for the homepage URL (http://github.com is fine)
+#    and http://localhost:1410 as the callback url
+#
+#    Insert your client ID and secret below - if secret is omitted, it will
+#    look it up in the GITHUB_CONSUMER_SECRET environmental variable.
+myapp <- oauth_app("github",
+  key = "116967dbc0c0948c253c",
+  secret = "db3d0400ec75baa7b718702902be099ceb5a3af5"
+)
+
+# 3. Get OAuth credentials
+github_token <- oauth2.0_token(oauth_endpoints("github"), myapp)
+
+# 4. Use API
+gtoken <- config(token = github_token)
+req <- GET( "https://api.github.com/users/jtleek/repos", gtoken)
+stop_for_status(req)
+content(req)
+
+# OR:
+#req <- with_config(gtoken, GET("https://api.github.com/rate_limit"))
+#stop_for_status(req)
+#content(req)
+
+json1 = content(req)
+json2 = jsonlite::fromJSON(toJSON(json1))
+head(json2)
+
+json2[json2$full_name == "jtleek/datasharing",] # 2013-11-07T13:25:07Z
+```
+
+## Question 2:
+The sqldf package allows for execution of SQL commands on R data frames. We will use the sqldf package to practice the queries we might send with the dbSendQuery command in RMySQL.
+
+Download the American Community Survey data and load it into an R object called
+
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fdata%2Fss06pid.csv
+
+Which of the following commands will select only the data for the probability weights pwgtp1 with ages less than 50?
+```{r}
+library(sqldf)
+acs<-read.csv("~/R Works/Coursera/Course 3 - Getting and Cleaning Data/Week 2/getdata%2Fdata%2Fss06pid.csv")
+acs[acs$AGEP<50, acs$pwgtp1]
+#sqldf("select pwgtp1 from acs where AGEP < 50")
+```
+
+## Question 3:
+Using the same data frame you created in the previous problem, what is the equivalent function to unique(acs$AGEP)
+
+```{r}
+unique(acs$AGEP)
+sqldf("select distinct AGEP from acs")
+```
+
+## Question 4:
+How many characters are in the 10th, 20th, 30th and 100th lines of HTML from this page:
+
+http://biostat.jhsph.edu/~jleek/contact.html
+
+(Hint: the nchar() function in R may be helpful)
+
+```{r}
+library(XML)
+con<-url("http://biostat.jhsph.edu/~jleek/contact.html")
+# read html by line
+htmlcode<-readLines(con)
+close(con)  # I forgot to close the connection originally.
+nchar(htmlcode[c(10,20,30,100)])
+```
+
+## Question 5:
+Read this data set into R and report the sum of the numbers in the fourth of the nine columns.
+
+https://d396qusza40orc.cloudfront.net/getdata%2Fwksst8110.for
+
+Original source of the data: http://www.cpc.ncep.noaa.gov/data/indices/wksst8110.for
+
+(Hint this is a fixed width file format)
+
+```{r}
+# check the data from the Web and count widths
+readLines("https://d396qusza40orc.cloudfront.net/getdata%2Fwksst8110.for",10)
+```
+
+```{r}
+# read data with read.fwf
+data<-read.fwf(file = "https://d396qusza40orc.cloudfront.net/getdata%2Fwksst8110.for", widths = c(10, -5,4, -1, 3, -5, 4), header = FALSE, skip = 4, col.names = c("Week", "Nina1.2.SST","Nina1.2.SSTA","Nina3.SST"))
+head(data)
+sum(data$Nina3.SST)
+```
